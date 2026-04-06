@@ -1,0 +1,13 @@
+# ── Secrets – never commit real credentials ─────────────────
+.env
+
+# ── OS / editor noise ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── PHP dependencies (none here, but safe to exclude) ────────
+vendor/

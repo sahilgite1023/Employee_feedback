@@ -1,0 +1,31 @@
+# ============================================================
+# .dockerignore – Employee Feedback System
+# ============================================================
+# Files listed here are NOT sent to the Docker build context,
+# which keeps the image lean and prevents secrets leaking in.
+# ============================================================
+
+# Git metadata
+.git
+.gitignore
+.gitattributes
+
+# Environment / secrets – NEVER bake these into the image
+.env
+.env.*
+!.env.example
+
+# Docker files themselves (not needed inside the container)
+Dockerfile
+docker-compose.yml
+
+# Editor / OS noise
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# Optional: node_modules / composer vendor (none in this project)
+node_modules
+vendor

@@ -1,0 +1,85 @@
+# ============================================================
+# docker-compose.yml – Employee Feedback System
+# ============================================================
+# Services:
+#   web        – PHP 8.2 + Apache (port 8080)
+#   db         – MySQL 8.0     (port 3306)
+#   phpmyadmin – phpMyAdmin     (port 8081)
+#
+# Usage:
+#   docker-compose up --build     # first run / after code changes
+#   docker-compose up -d          # detached (background) mode
+#   docker-compose down           # stop and remove containers
+#   docker-compose down -v        # also remove the DB data volume
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── PHP + Apache web server ────────────────────────────────
+  web:
+    build:
+      context: .           # build Dockerfile in the project root
+      dockerfile: Dockerfile
+    container_name: employee_feedback_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"           # http://localhost:8080
+    volumes:
+      # Hot-reload: mount source files so edits take effect immediately
+      - .:/var/www/html
+    environment:
+      # Passed into PHP via getenv() – see config/db.php
+      DB_HOST:     db
+      DB_PORT:     3306
+      DB_NAME:     ${MYSQL_DATABASE}
+      DB_USER:     ${MYSQL_USER}
+      DB_PASS:     ${MYSQL_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy   # wait until MySQL is ready
+
+  # ── MySQL database ─────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: employee_feedback_db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"         # expose for local tools (e.g. TablePlus)
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE}
+      MYSQL_USER:          ${MYSQL_USER}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD}
+    volumes:
+      # Persistent storage so data survives container restarts
+      - db_data:/var/lib/mysql
+      # Auto-import schema on first container start
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── phpMyAdmin (optional – database GUI) ──────────────────
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: employee_feedback_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"           # http://localhost:8081
+    environment:
+      PMA_HOST:     db
+      PMA_PORT:     3306
+      PMA_USER:     ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - db
+
+# ── Named volumes ──────────────────────────────────────────
+volumes:
+  db_data:
+    driver: local
