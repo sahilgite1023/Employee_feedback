@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/../config/db.php';
 
     $email    = trim($_POST['email']    ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $password = $_POST['password'] ?? '';
 
     if ($email === '' || $password === '') {
         $error = 'Please fill in all fields.';

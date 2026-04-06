@@ -156,7 +156,7 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
     const category  = document.getElementById('category').value;
     const rating    = ratingInput.value;
     const message   = messageArea.value.trim();
-    const anonymous = document.getElementById('isAnonymous').checked ? '1' : '0';
+    const anonymous = document.getElementById('isAnonymous').checked ? 1 : 0;
 
     // Client-side validation
     if (!category) { showToast('Please select a category.', 'error'); return; }
