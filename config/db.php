@@ -2,14 +2,15 @@
 /**
  * config/db.php
  * Database connection using PDO.
- * Adjust the constants below to match your environment.
+ * Credentials are read from environment variables (set via .env / Docker Compose).
+ * Fallback values are provided for local development without Docker.
  */
 
-define('DB_HOST', 'localhost');
-define('DB_PORT', '3306');
-define('DB_NAME', 'employee_feedback_db');
-define('DB_USER', 'root');       // change to your MySQL username
-define('DB_PASS', '');           // change to your MySQL password
+define('DB_HOST',    getenv('DB_HOST')    ?: 'localhost');
+define('DB_PORT',    getenv('DB_PORT')    ?: '3306');
+define('DB_NAME',    getenv('DB_NAME')    ?: 'employee_feedback_db');
+define('DB_USER',    getenv('DB_USER')    ?: 'root');
+define('DB_PASS',    getenv('DB_PASS')    ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 function getPDO(): PDO

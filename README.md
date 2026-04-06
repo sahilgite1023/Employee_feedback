@@ -23,9 +23,13 @@ A **modern, full-stack employee feedback platform** built with PHP, MySQL, JavaS
 Employee_feedback/
 ├── index.php                  # Root redirect
 ├── .htaccess                  # Apache config + security
+├── Dockerfile                 # PHP 8.2 + Apache image definition
+├── docker-compose.yml         # Multi-container orchestration (web + db + phpmyadmin)
+├── .env.example               # Template for environment variables
+├── .dockerignore              # Files excluded from the Docker build context
 │
 ├── config/
-│   └── db.php                 # PDO database connection
+│   └── db.php                 # PDO connection – reads credentials from env vars
 │
 ├── auth/
 │   ├── login.php              # Login page
@@ -58,7 +62,7 @@ Employee_feedback/
 │   └── js/charts.js           # Chart.js initialisation
 │
 └── database/
-    └── schema.sql             # DB schema + default admin seed
+    └── schema.sql             # DB schema + default admin seed (auto-imported by Docker)
 ```
 
 ---
@@ -89,7 +93,68 @@ Employee_feedback/
 
 ---
 
-## 🚀 Setup Instructions
+## 🐳 Docker Setup (Recommended)
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose plugin)
+
+### 1. Create your `.env` file
+
+```bash
+cp .env.example .env
+# Edit .env with your preferred passwords (do NOT commit this file)
+```
+
+### 2. Build and start all containers
+
+```bash
+docker-compose up --build
+```
+
+Docker will:
+- Build the PHP + Apache image
+- Pull MySQL 8.0 and phpMyAdmin images
+- Auto-import `database/schema.sql` (creates tables + seeds default admin)
+- Start all three services
+
+### 3. Access the application
+
+| Service | URL |
+|---|---|
+| Web app | <http://localhost:8080> |
+| phpMyAdmin | <http://localhost:8081> |
+| MySQL | `localhost:3306` (use DB_USER / DB_PASS from `.env`) |
+
+### 4. Default login
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@company.com | Admin@123 |
+| Employee | *(register a new account)* | *(your choice)* |
+
+### 5. Stop containers
+
+```bash
+docker-compose down          # stop and remove containers (data volume kept)
+docker-compose down -v       # also delete the MySQL data volume (full reset)
+```
+
+### 6. View logs / debug
+
+```bash
+docker-compose logs -f web   # PHP / Apache logs (live)
+docker-compose logs -f db    # MySQL logs
+docker-compose ps            # show running containers and port bindings
+docker exec -it employee_feedback_web bash   # shell into the web container
+```
+
+### Hot reload
+
+The `docker-compose.yml` bind-mounts the project directory into the container, so any change you save locally is reflected immediately without rebuilding the image.
+
+---
+
+## 🚀 Manual Setup (without Docker)
 
 ### Prerequisites
 - PHP 8.0+
@@ -113,13 +178,13 @@ Or paste the contents of `database/schema.sql` into phpMyAdmin.
 
 ### 3. Configure the database connection
 
-Edit `config/db.php` and update:
+Set environment variables before starting Apache, or create a `.env` file and load it. For a quick local test you can also export them in your shell:
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'employee_feedback_db');
-define('DB_USER', 'root');      // your MySQL username
-define('DB_PASS', '');          // your MySQL password
+```bash
+export DB_HOST=localhost
+export DB_NAME=employee_feedback_db
+export DB_USER=root
+export DB_PASS=your_password
 ```
 
 ### 4. Set web root
